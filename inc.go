@@ -6,7 +6,7 @@ type candidate struct {
 	match bool
 }
 
-type Window struct {
+type Engine struct {
 	cs    []candidate
 	query string
 }
@@ -14,7 +14,7 @@ type Window struct {
 func New(query string, candidates []struct {
 	ptr  *any
 	text string
-}) *Window {
+}) *Engine {
 	cs := make([]candidate, len(candidates))
 	for i, c := range candidates {
 		cs[i] = candidate{
@@ -24,7 +24,7 @@ func New(query string, candidates []struct {
 		}
 	}
 
-	return &Window{
+	return &Engine{
 		cs:    cs,
 		query: query,
 	}
@@ -48,42 +48,42 @@ func Match(query string, body string) bool {
 	return false
 }
 
-func (w *Window) Matched() ([]int, []string) {
-	is := make([]int, 0, len(w.cs))
-	ss := make([]string, 0, len(w.cs))
+func (e *Engine) Matched() ([]int, []string) {
+	is := make([]int, 0, len(e.cs))
+	ss := make([]string, 0, len(e.cs))
 
-	for i := 0; i < len(w.cs); i++ {
-		if w.cs[i].match {
+	for i := 0; i < len(e.cs); i++ {
+		if e.cs[i].match {
 			is = append(is, i)
-			ss = append(ss, w.cs[i].text)
+			ss = append(ss, e.cs[i].text)
 		}
 	}
 	return is, ss
 }
 
-func (w *Window) MatchedPtr() []*any {
-	res := make([]*any, 0, len(w.cs))
+func (e *Engine) MatchedPtr() []*any {
+	res := make([]*any, 0, len(e.cs))
 
-	for i := 0; i < len(w.cs); i++ {
-		res = append(res, w.cs[i].ptr)
+	for i := 0; i < len(e.cs); i++ {
+		res = append(res, e.cs[i].ptr)
 	}
 	return res
 }
 
-func (w *Window) AddQuery(c rune) {
-	w.query += string(c)
-	for _, c := range w.cs {
-		c.match = Match(w.query, c.text)
+func (e *Engine) AddQuery(c rune) {
+	e.query += string(c)
+	for _, c := range e.cs {
+		c.match = Match(e.query, c.text)
 	}
 }
 
-func (w *Window) DelQuery() {
-	if len(w.query) == 0 {
+func (e *Engine) DelQuery() {
+	if len(e.query) == 0 {
 		return
 	}
 
-	w.query = w.query[:len(w.query)-1]
-	for _, c := range w.cs {
-		c.match = Match(w.query, c.text)
+	e.query = e.query[:len(e.query)-1]
+	for _, c := range e.cs {
+		c.match = Match(e.query, c.text)
 	}
 }

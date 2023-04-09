@@ -9,7 +9,8 @@ func (e *Engine) AddQuery(r rune) {
 	e.query = append(e.query, r)
 
 	for _, c := range e.cands {
-		surplus := c.Text[lastOr(c.memo.starts, 0):]
+		lastStart := lastOr(c.memo.starts, 0)
+		surplus := c.Text[lastStart:]
 		if c.memo.matched {
 			found := strings.IndexRune(surplus, r)
 			if found == -1 {
@@ -21,7 +22,7 @@ func (e *Engine) AddQuery(r rune) {
 			// "123" + "四五六"
 			// len('四') == 3
 			// search '四' -> uint(len(surplus)+found+utf8.RuneLen(r)) == 6
-			c.memo.starts = append(c.memo.starts, uint(len(surplus)+found+utf8.RuneLen(r)))
+			c.memo.starts = append(c.memo.starts, lastStart+uint(found+utf8.RuneLen(r)))
 		}
 	}
 }

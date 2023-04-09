@@ -28,7 +28,7 @@ func (e *Engine) AddQuery(r rune) {
 }
 
 func (e *Engine) RmQuery() {
-	rmLast(e.query)
+	e.query = rmLast(e.query)
 
 	for _, c := range e.cands {
 		if c.memo.matched {

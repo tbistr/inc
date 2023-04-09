@@ -68,7 +68,9 @@ func (e *Engine) MatchedPtr() []any {
 	res := make([]any, 0, len(e.cands))
 
 	for _, c := range e.cands {
-		res = append(res, c.Ptr)
+		if c.memo.matched {
+			res = append(res, c.Ptr)
+		}
 	}
 	return res
 }

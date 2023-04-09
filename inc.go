@@ -20,6 +20,10 @@ func New(query string, cands []Candidate) *Engine {
 	return e
 }
 
+func (e *Engine) Query() string {
+	return string(e.query)
+}
+
 func Match(query string, body string) bool {
 	return matchWithRune([]rune(query), body)
 }

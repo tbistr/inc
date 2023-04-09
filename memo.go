@@ -10,7 +10,12 @@ type memo struct {
 	// whole   string
 	// surplus string
 	// surplus is calculated by target[indexes[len(indexes)-1]:]
-	indexes []uint
+
+	// starts is the indexes of the **next** of first rune of each matched rune.
+	//
+	// e.g. if {query: "abc", target: "aaabbbccc"} then starts is [1, 4, 7].
+	// Each index is used to get substring for next search like `target[starts[len(starts)-1]:]]`.
+	starts []uint
 }
 
 func (e *Engine) initMemo() {
@@ -18,15 +23,15 @@ func (e *Engine) initMemo() {
 		m, is := matchWithMemo(e.query, cand.Text)
 		cand.memo = &memo{
 			matched: m,
-			indexes: is,
+			starts:  is,
 		}
 	}
 }
 
 func matchWithMemo(query []rune, target string) (bool, []uint) {
-	indexes := make([]uint, 0, len(query))
+	starts := make([]uint, 0, len(query))
 	if len(query) == 0 {
-		return true, indexes
+		return true, starts
 	}
 
 	byteI := uint(0)
@@ -35,12 +40,12 @@ func matchWithMemo(query []rune, target string) (bool, []uint) {
 		byteI += uint(utf8.RuneLen(r))
 		if r == query[cursor] {
 			cursor++
-			indexes = append(indexes, byteI)
+			starts = append(starts, byteI)
 		}
 		if cursor == len(query) {
-			return true, indexes
+			return true, starts
 		}
 	}
 
-	return false, indexes
+	return false, starts
 }

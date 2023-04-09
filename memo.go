@@ -19,9 +19,9 @@ type memo struct {
 }
 
 func (e *Engine) initMemo() {
-	for _, cand := range e.cands {
-		m, is := matchWithMemo(e.query, cand.Text)
-		cand.memo = &memo{
+	for i := range e.cands {
+		m, is := matchWithMemo(e.query, e.cands[i].Text)
+		e.cands[i].memo = &memo{
 			matched: m,
 			starts:  is,
 		}

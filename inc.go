@@ -1,43 +1,37 @@
 package inc
 
-type candidate struct {
-	ptr   *any
-	text  string
-	match bool
+type Candidate struct {
+	Ptr  any
+	Text string
+	memo *memo
 }
 
 type Engine struct {
-	cs    []candidate
-	query string
+	cands []Candidate
+	query []rune
 }
 
-func New(query string, candidates []struct {
-	ptr  *any
-	text string
-}) *Engine {
-	cs := make([]candidate, len(candidates))
-	for i, c := range candidates {
-		cs[i] = candidate{
-			ptr:   c.ptr,
-			text:  c.text,
-			match: Match(query, c.text),
-		}
+func New(query string, cands []Candidate) *Engine {
+	e := &Engine{
+		cands: cands,
+		query: []rune(query),
 	}
-
-	return &Engine{
-		cs:    cs,
-		query: query,
-	}
+	e.initMemo()
+	return e
 }
 
 func Match(query string, body string) bool {
+	return matchWithRune([]rune(query), body)
+}
+
+func matchWithRune(query []rune, body string) bool {
 	if len(query) == 0 {
 		return true
 	}
 
 	cursor := 0
 	for _, c := range body {
-		if c == rune(query[cursor]) {
+		if c == query[cursor] {
 			cursor++
 		}
 		if cursor == len(query) {
@@ -48,42 +42,33 @@ func Match(query string, body string) bool {
 	return false
 }
 
-func (e *Engine) Matched() ([]int, []string) {
-	is := make([]int, 0, len(e.cs))
-	ss := make([]string, 0, len(e.cs))
+func (e *Engine) MatchedIndex() []int {
+	res := make([]int, 0, len(e.cands))
 
-	for i := 0; i < len(e.cs); i++ {
-		if e.cs[i].match {
-			is = append(is, i)
-			ss = append(ss, e.cs[i].text)
+	for i := range e.cands {
+		if e.cands[i].memo.matched {
+			res = append(res, i)
 		}
-	}
-	return is, ss
-}
-
-func (e *Engine) MatchedPtr() []*any {
-	res := make([]*any, 0, len(e.cs))
-
-	for i := 0; i < len(e.cs); i++ {
-		res = append(res, e.cs[i].ptr)
 	}
 	return res
 }
 
-func (e *Engine) AddQuery(c rune) {
-	e.query += string(c)
-	for _, c := range e.cs {
-		c.match = Match(e.query, c.text)
+func (e *Engine) MatchedString() []string {
+	res := make([]string, 0, len(e.cands))
+
+	for _, c := range e.cands {
+		if c.memo.matched {
+			res = append(res, c.Text)
+		}
 	}
+	return res
 }
 
-func (e *Engine) DelQuery() {
-	if len(e.query) == 0 {
-		return
-	}
+func (e *Engine) MatchedPtr() []any {
+	res := make([]any, 0, len(e.cands))
 
-	e.query = e.query[:len(e.query)-1]
-	for _, c := range e.cs {
-		c.match = Match(e.query, c.text)
+	for _, c := range e.cands {
+		res = append(res, c.Ptr)
 	}
+	return res
 }

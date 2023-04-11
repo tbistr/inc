@@ -33,16 +33,31 @@ type Candidate struct {
 // Engine is a engine for incremental search.
 // Cands is a list of candidates.
 type Engine struct {
-	Cands []Candidate
-	query []rune
+	Cands  []Candidate
+	query  []rune
+	index  index
+	option *option
 }
 
 // New returns a new Engine.
-func New(query string, cands []Candidate) *Engine {
-	e := &Engine{
-		Cands: cands,
-		query: []rune(query),
+//
+// Options is set like `New("", [], inc.IgnoreCase())`
+func New(query string, cands []Candidate, opts ...Option) *Engine {
+	// default option
+	opt := option{
+		ignoreCase: false,
 	}
+	for _, setter := range opts {
+		setter(&opt)
+	}
+
+	e := &Engine{
+		Cands:  cands,
+		query:  []rune(query),
+		option: &opt,
+	}
+	// initMemo must be called after initIndex().
+	e.initIndex()
 	e.initMemo()
 	return e
 }

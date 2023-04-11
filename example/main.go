@@ -39,7 +39,7 @@ var ss = []string{
 	"Neque aliquam vestibulum morbi blandit cursus risus",
 }
 
-var ENGINE *inc.Engine = inc.New("", inc.Strs2Cands(ss))
+var ENGINE *inc.Engine = inc.New("", inc.Strs2Cands(ss), inc.IgnoreCase())
 
 func dumpCands() string {
 	b := strings.Builder{}

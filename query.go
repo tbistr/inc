@@ -1,7 +1,6 @@
 package inc
 
 import (
-	"strings"
 	"unicode/utf8"
 )
 
@@ -20,7 +19,7 @@ func (e *Engine) AddQuery(r rune) {
 		if c.memo.matched {
 			last := lastOr(c.memo.founds, FoundRune{0, 0})
 			surplus := c.Text[last.Pos+last.Len:]
-			found := strings.IndexRune(surplus, r)
+			found := e.index(surplus, r)
 			if found == -1 {
 				c.memo.matched = false
 				continue

@@ -5,6 +5,7 @@ import (
 	"unicode/utf8"
 )
 
+// AddQuery adds a rune to the query.
 func (e *Engine) AddQuery(r rune) {
 	e.query = append(e.query, r)
 
@@ -30,6 +31,7 @@ func (e *Engine) AddQuery(r rune) {
 	}
 }
 
+// RmQuery removes the last rune from the query.
 func (e *Engine) RmQuery() {
 	e.query = rmLast(e.query)
 
@@ -42,6 +44,8 @@ func (e *Engine) RmQuery() {
 	}
 }
 
+// DelQuery removes all runes from the query.
+// All candidates will be matched.
 func (e *Engine) DelQuery() {
 	if len(e.query) == 0 {
 		return

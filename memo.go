@@ -2,19 +2,13 @@ package inc
 
 import "unicode/utf8"
 
+// memo is a memoization for efficiency of transition of query add or remove.
 type memo struct {
-	// NOTE: Should really define memo as struct?
-	// matched can be defined in Candidate.
-	// Then indexes can be defined as memo(field).
 	matched bool
-	// whole   string
-	// surplus string
-	// surplus is calculated by target[indexes[len(indexes)-1]:]
-
-	// starts is the indexes of the **next** of first rune of each matched rune.
+	// pos is the indexes of the **next** of first rune of each matched rune.
 	//
 	// e.g. if {query: "abc", target: "aaabbbccc"} then pos is [0, 3, 6]
-	// Each index is used to get substring for next search like `target[starts[len(starts)-1]:]]`.
+	// Each index is used to get substring for next search like `target[pos[-1]+len[-1]:]]`.
 	pos []uint
 	// len is length of target[pos[i]].
 	// It is used to get substring for next search like `target[pos[i]+len[i]]`.
@@ -22,6 +16,7 @@ type memo struct {
 	// NOTE: Should be []uint8? but can't calc pos + len.
 }
 
+// initMemo initializes memo for each candidate.
 func (e *Engine) initMemo() {
 	for i := range e.Cands {
 		m, p, l := matchWithMemo(e.query, e.Cands[i].Text)
@@ -33,11 +28,21 @@ func (e *Engine) initMemo() {
 	}
 }
 
+// FoundRune represents a found rune info in the target.
+//
+// Pos is the index of the first rune of the found rune.
+// Len is the length of the found rune.
+//
+// `target[found[i]:]` is the rest of the target(including the found rune).
+// `target[found[i].Pos:found[i].Pos+found[i].Len]` is the one found rune.
 type FoundRune struct {
 	Pos uint
 	Len uint
 }
 
+// FoundRunes returns the found runes info in the target.
+//
+// If the candidate is not matched, `len(FoundRunes()) < len(QueryRunes())`.
 func (c Candidate) FoundRunes() []FoundRune {
 	res := make([]FoundRune, 0, len(c.memo.pos))
 
@@ -50,6 +55,7 @@ func (c Candidate) FoundRunes() []FoundRune {
 	return res
 }
 
+// matchWithMemo does naive incremental search and returns memo for it.
 func matchWithMemo(query []rune, target string) (matched bool, poss []uint, lens []uint) {
 	// Ok to specify cap = len(query), but increase memory usage.
 	if len(query) == 0 {

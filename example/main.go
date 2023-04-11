@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
@@ -42,24 +41,18 @@ var ss = []string{
 
 var ENGINE *inc.Engine = inc.New("", inc.Strs2Cands(ss))
 
-var DEBUG = tview.NewTextView()
-
 func dumpCands() string {
-	idx := ENGINE.MatchedIndex()
-	cur := 0
 	b := strings.Builder{}
 	color := ""
-	for i, c := range ENGINE.Cands {
-		DEBUG.SetText(fmt.Sprintf("idx: %v, cur: %v", idx, cur))
-		if cur < len(idx) && i == idx[cur] {
-			b.WriteString("+ ")
+	for _, c := range ENGINE.Cands {
+		if c.Matched() {
 			color = "[white]"
 			b.WriteString(color)
-			cur++
+			b.WriteString("+ ")
 		} else {
-			b.WriteString("- ")
 			color = "[grey]"
 			b.WriteString(color)
+			b.WriteString("- ")
 		}
 		founds := c.FoundRunes()
 		last := uint(0)
@@ -77,10 +70,6 @@ func dumpCands() string {
 }
 
 func main() {
-	DEBUG.
-		SetTitle("debug").
-		SetBorder(true)
-
 	app := tview.NewApplication()
 
 	result := tview.NewTextView()
@@ -100,7 +89,6 @@ func main() {
 		case tcell.KeyBackspace, tcell.KeyBackspace2:
 			ENGINE.RmQuery()
 		}
-		result.SetText("")
 		result.SetText(dumpCands())
 		return event
 	})
@@ -108,7 +96,6 @@ func main() {
 	flex := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(query, 3, 1, true).
-		// AddItem(DEBUG, 3, 1, false).
 		AddItem(result, 0, 1, false)
 
 	if err := app.SetRoot(flex, true).Run(); err != nil {

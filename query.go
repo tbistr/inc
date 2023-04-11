@@ -5,6 +5,13 @@ import (
 	"unicode/utf8"
 )
 
+// AddQueryString adds a string to the query.
+func (e *Engine) AddQueryString(s string) {
+	for _, r := range s {
+		e.AddQuery(r)
+	}
+}
+
 // AddQuery adds a rune to the query.
 func (e *Engine) AddQuery(r rune) {
 	e.query = append(e.query, r)
@@ -29,6 +36,16 @@ func (e *Engine) AddQuery(r rune) {
 				uint(utf8.RuneLen(r)),
 			})
 		}
+	}
+}
+
+// RmNQuery removes the last n runes from the query.
+func (e *Engine) RmNQuery(n int) {
+	if n <= 0 {
+		return
+	}
+	for i := 0; i < n; i++ {
+		e.RmQuery()
 	}
 }
 

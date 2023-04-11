@@ -8,7 +8,7 @@ import (
 func (e *Engine) AddQuery(r rune) {
 	e.query = append(e.query, r)
 
-	for _, c := range e.cands {
+	for _, c := range e.Cands {
 		lPos := lastOr(c.memo.pos, 0)
 		lLen := lastOr(c.memo.len, 0)
 		surplus := c.Text[lPos+lLen:]
@@ -22,8 +22,8 @@ func (e *Engine) AddQuery(r rune) {
 			// head    surplus
 			// "123" + "四五六"
 			// if addQuery('四') ->
-			// pos = lPos + lLen + found = 2 + 1 + 0 = 3
-			// len = RuneLen('四') = 3
+			// Pos = lPos + lLen + found = 2 + 1 + 0 = 3
+			// Len = RuneLen('四') = 3
 			c.memo.pos = append(c.memo.pos, lPos+lLen+uint(found))
 			c.memo.len = append(c.memo.len, uint(utf8.RuneLen(r)))
 		}
@@ -33,7 +33,7 @@ func (e *Engine) AddQuery(r rune) {
 func (e *Engine) RmQuery() {
 	e.query = rmLast(e.query)
 
-	for _, c := range e.cands {
+	for _, c := range e.Cands {
 		if c.memo.matched {
 			c.memo.pos = rmLast(c.memo.pos)
 			c.memo.len = rmLast(c.memo.len)
@@ -48,7 +48,7 @@ func (e *Engine) DelQuery() {
 	}
 	e.query = []rune{}
 
-	for _, c := range e.cands {
+	for _, c := range e.Cands {
 		c.memo.matched = true
 		c.memo.pos = []uint{}
 		c.memo.len = []uint{}

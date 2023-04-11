@@ -7,13 +7,13 @@ type Candidate struct {
 }
 
 type Engine struct {
-	cands []Candidate
+	Cands []Candidate
 	query []rune
 }
 
 func New(query string, cands []Candidate) *Engine {
 	e := &Engine{
-		cands: cands,
+		Cands: cands,
 		query: []rune(query),
 	}
 	e.initMemo()
@@ -47,10 +47,10 @@ func matchWithRune(query []rune, body string) bool {
 }
 
 func (e *Engine) MatchedIndex() []int {
-	res := make([]int, 0, len(e.cands))
+	res := make([]int, 0, len(e.Cands))
 
-	for i := range e.cands {
-		if e.cands[i].memo.matched {
+	for i := range e.Cands {
+		if e.Cands[i].memo.matched {
 			res = append(res, i)
 		}
 	}
@@ -58,9 +58,9 @@ func (e *Engine) MatchedIndex() []int {
 }
 
 func (e *Engine) MatchedString() []string {
-	res := make([]string, 0, len(e.cands))
+	res := make([]string, 0, len(e.Cands))
 
-	for _, c := range e.cands {
+	for _, c := range e.Cands {
 		if c.memo.matched {
 			res = append(res, c.Text)
 		}
@@ -69,9 +69,9 @@ func (e *Engine) MatchedString() []string {
 }
 
 func (e *Engine) MatchedPtr() []any {
-	res := make([]any, 0, len(e.cands))
+	res := make([]any, 0, len(e.Cands))
 
-	for _, c := range e.cands {
+	for _, c := range e.Cands {
 		if c.memo.matched {
 			res = append(res, c.Ptr)
 		}

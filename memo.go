@@ -23,14 +23,31 @@ type memo struct {
 }
 
 func (e *Engine) initMemo() {
-	for i := range e.cands {
-		m, p, l := matchWithMemo(e.query, e.cands[i].Text)
-		e.cands[i].memo = &memo{
+	for i := range e.Cands {
+		m, p, l := matchWithMemo(e.query, e.Cands[i].Text)
+		e.Cands[i].memo = &memo{
 			matched: m,
 			pos:     p,
 			len:     l,
 		}
 	}
+}
+
+type FoundRune struct {
+	Pos uint
+	Len uint
+}
+
+func (c Candidate) FoundRunes() []FoundRune {
+	res := make([]FoundRune, 0, len(c.memo.pos))
+
+	for i := range c.memo.pos {
+		res = append(res, FoundRune{
+			Pos: c.memo.pos[i],
+			Len: c.memo.len[i],
+		})
+	}
+	return res
 }
 
 func matchWithMemo(query []rune, target string) (matched bool, poss []uint, lens []uint) {

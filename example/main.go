@@ -48,15 +48,29 @@ func dumpCands() string {
 	idx := ENGINE.MatchedIndex()
 	cur := 0
 	b := strings.Builder{}
-	for i, s := range ss {
+	color := ""
+	for i, c := range ENGINE.Cands {
 		DEBUG.SetText(fmt.Sprintf("idx: %v, cur: %v", idx, cur))
 		if cur < len(idx) && i == idx[cur] {
 			b.WriteString("+ ")
+			color = "[white]"
+			b.WriteString(color)
 			cur++
 		} else {
 			b.WriteString("- ")
+			color = "[grey]"
+			b.WriteString(color)
 		}
-		b.WriteString(s)
+		founds := c.FoundRunes()
+		last := uint(0)
+		for _, f := range founds {
+			b.WriteString(c.Text[last:f.Pos])
+			b.WriteString("[red]")
+			b.WriteString(c.Text[f.Pos : f.Pos+f.Len])
+			b.WriteString(color)
+			last = f.Pos + f.Len
+		}
+		b.WriteString(c.Text[last:])
 		b.WriteString("\n")
 	}
 	return b.String()
@@ -71,6 +85,7 @@ func main() {
 
 	result := tview.NewTextView()
 	result.SetTitle("Result").SetBorder(true)
+	result.SetDynamicColors(true)
 	result.SetText(dumpCands())
 
 	query := tview.NewInputField()
@@ -85,6 +100,7 @@ func main() {
 		case tcell.KeyBackspace, tcell.KeyBackspace2:
 			ENGINE.RmQuery()
 		}
+		result.SetText("")
 		result.SetText(dumpCands())
 		return event
 	})

@@ -10,56 +10,49 @@ func Test_matchWithMemo(t *testing.T) {
 	for name, tt := range map[string]struct {
 		query  []rune
 		target string
-		match  bool
-		pos    []uint
-		len    []uint
+		memo   memo
 	}{
 		"empty": {
-			query:  []rune{},
-			target: "abc",
-			match:  true,
-			pos:    []uint{},
-			len:    []uint{},
+			[]rune{},
+			"abc",
+			memo{true, []FoundRune{}},
 		},
 		"matched": {
-			query:  []rune{'a', 'b', 'c'},
-			target: "aaabbbccc",
-			match:  true,
-			pos:    []uint{0, 3, 6},
-			len:    []uint{1, 1, 1},
+			[]rune{'a', 'b', 'c'},
+			"aaabbbccc",
+			memo{true, []FoundRune{
+				{0, 1}, {3, 1}, {6, 1},
+			}},
 		},
 		"not matched": {
-			query:  []rune{'a', 'b', 'c'},
-			target: "aaabbbddd",
-			match:  false,
-			pos:    []uint{0, 3},
-			len:    []uint{1, 1},
+			[]rune{'a', 'b', 'c'},
+			"aaabbbddd",
+			memo{false, []FoundRune{
+				{0, 1}, {3, 1},
+			}},
 		},
 		"multi byte char": {
-			query:  []rune{'一', '二', '五'},
-			target: "一二三四五六",
-			match:  true,
-			pos:    []uint{0, 3, 12},
-			len:    []uint{3, 3, 3},
+			[]rune{'一', '二', '五'},
+			"一二三四五六",
+			memo{true, []FoundRune{
+				{0, 3}, {3, 3}, {12, 3},
+			}},
 		},
 		"mixed multi byte char": {
-			query:  []rune{'2', '三', '五'},
-			target: "123一二三四五六",
-			match:  true,
-			pos:    []uint{1, 9, 15},
-			len:    []uint{1, 3, 3},
+			[]rune{'2', '三', '五'},
+			"123一二三四五六",
+			memo{true, []FoundRune{
+				{1, 1}, {9, 3}, {15, 3},
+			}},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			got1, got2, got3 := matchWithMemo(tt.query, tt.target)
-			if got1 != tt.match {
-				t.Errorf("matchWithMemo() got1 = %v, want %v", got1, tt.match)
+			got := matchWithMemo(tt.query, tt.target)
+			if got.matched != tt.memo.matched {
+				t.Errorf("matchWithMemo() got.matched = %v, want %v", got.matched, tt.memo.matched)
 			}
-			if !slices.Equal(got2, tt.pos) {
-				t.Errorf("matchWithMemo() got2 = %v, want %v", got2, tt.pos)
-			}
-			if !slices.Equal(got3, tt.len) {
-				t.Errorf("matchWithMemo() got3 = %v, want %v", got2, tt.len)
+			if !slices.Equal(got.founds, tt.memo.founds) {
+				t.Errorf("matchWithMemo() got.founds = %v, want %v", got.founds, tt.memo.founds)
 			}
 		})
 	}

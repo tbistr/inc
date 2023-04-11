@@ -1,65 +1,52 @@
 package inc
 
-import "unicode/utf8"
+import (
+	"unicode/utf8"
+)
 
 // memo is a memoization for efficiency of transition of query add or remove.
 type memo struct {
 	matched bool
-	// pos is the indexes of the **next** of first rune of each matched rune.
+	founds  []FoundRune
+}
+
+// FoundRune represents a found rune info in the target.
+//
+// `target[found.Pos:]` is the rest of the target(including the found rune).
+// `target[found.Pos:found.Pos+found.Len]` is the one found rune.
+type FoundRune struct {
+	// Pos is the indexes of the **next** of first rune of each matched rune.
 	//
-	// e.g. if {query: "abc", target: "aaabbbccc"} then pos is [0, 3, 6]
-	// Each index is used to get substring for next search like `target[pos[-1]+len[-1]:]]`.
-	pos []uint
-	// len is length of target[pos[i]].
-	// It is used to get substring for next search like `target[pos[i]+len[i]]`.
-	len []uint
+	// e.g. if {query: "abc", target: "aaabbbccc"} then Pos is [0, 3, 6]
+	// Each index is used to get substring for next search like `target[Pos[-1]+len[-1]:]]`.
+	Pos uint
+	// Len is length of target[Pos].
+	// It is used to get substring for next search like `target[pos+Len]`.
+	Len uint
 	// NOTE: Should be []uint8? but can't calc pos + len.
 }
 
 // initMemo initializes memo for each candidate.
 func (e *Engine) initMemo() {
 	for i := range e.Cands {
-		m, p, l := matchWithMemo(e.query, e.Cands[i].Text)
-		e.Cands[i].memo = &memo{
-			matched: m,
-			pos:     p,
-			len:     l,
-		}
+		e.Cands[i].memo = matchWithMemo(e.query, e.Cands[i].Text)
 	}
-}
-
-// FoundRune represents a found rune info in the target.
-//
-// Pos is the index of the first rune of the found rune.
-// Len is the length of the found rune.
-//
-// `target[found[i]:]` is the rest of the target(including the found rune).
-// `target[found[i].Pos:found[i].Pos+found[i].Len]` is the one found rune.
-type FoundRune struct {
-	Pos uint
-	Len uint
 }
 
 // FoundRunes returns the found runes info in the target.
 //
 // If the candidate is not matched, `len(FoundRunes()) < len(QueryRunes())`.
 func (c Candidate) FoundRunes() []FoundRune {
-	res := make([]FoundRune, 0, len(c.memo.pos))
-
-	for i := range c.memo.pos {
-		res = append(res, FoundRune{
-			Pos: c.memo.pos[i],
-			Len: c.memo.len[i],
-		})
-	}
-	return res
+	// Shallow copy is acceptable.
+	return append([]FoundRune{}, c.memo.founds...)
 }
 
 // matchWithMemo does naive incremental search and returns memo for it.
-func matchWithMemo(query []rune, target string) (matched bool, poss []uint, lens []uint) {
+func matchWithMemo(query []rune, target string) *memo {
 	// Ok to specify cap = len(query), but increase memory usage.
+	founds := make([]FoundRune, 0)
 	if len(query) == 0 {
-		return true, poss, lens
+		return &memo{true, founds}
 	}
 
 	byteI := uint(0)
@@ -67,14 +54,15 @@ func matchWithMemo(query []rune, target string) (matched bool, poss []uint, lens
 	for _, r := range target {
 		if r == query[cursor] {
 			cursor++
-			poss = append(poss, byteI)
-			lens = append(lens, uint(utf8.RuneLen(r)))
+			founds = append(founds, FoundRune{
+				byteI, uint(utf8.RuneLen(r)),
+			})
 		}
 		if cursor == len(query) {
-			return true, poss, lens
+			return &memo{true, founds}
 		}
 		byteI += uint(utf8.RuneLen(r))
 	}
 
-	return false, poss, lens
+	return &memo{false, founds}
 }

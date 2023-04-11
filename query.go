@@ -10,10 +10,9 @@ func (e *Engine) AddQuery(r rune) {
 	e.query = append(e.query, r)
 
 	for _, c := range e.Cands {
-		lPos := lastOr(c.memo.pos, 0)
-		lLen := lastOr(c.memo.len, 0)
-		surplus := c.Text[lPos+lLen:]
 		if c.memo.matched {
+			last := lastOr(c.memo.founds, FoundRune{0, 0})
+			surplus := c.Text[last.Pos+last.Len:]
 			found := strings.IndexRune(surplus, r)
 			if found == -1 {
 				c.memo.matched = false
@@ -25,8 +24,10 @@ func (e *Engine) AddQuery(r rune) {
 			// if addQuery('四') ->
 			// Pos = lPos + lLen + found = 2 + 1 + 0 = 3
 			// Len = RuneLen('四') = 3
-			c.memo.pos = append(c.memo.pos, lPos+lLen+uint(found))
-			c.memo.len = append(c.memo.len, uint(utf8.RuneLen(r)))
+			c.memo.founds = append(c.memo.founds, FoundRune{
+				last.Pos + last.Len + uint(found),
+				uint(utf8.RuneLen(r)),
+			})
 		}
 	}
 }
@@ -37,10 +38,9 @@ func (e *Engine) RmQuery() {
 
 	for _, c := range e.Cands {
 		if c.memo.matched {
-			c.memo.pos = rmLast(c.memo.pos)
-			c.memo.len = rmLast(c.memo.len)
+			c.memo.founds = rmLast(c.memo.founds)
 		}
-		c.memo.matched = len(c.memo.pos) == len(e.query)
+		c.memo.matched = len(c.memo.founds) == len(e.query)
 	}
 }
 
@@ -53,9 +53,7 @@ func (e *Engine) DelQuery() {
 	e.query = []rune{}
 
 	for _, c := range e.Cands {
-		c.memo.matched = true
-		c.memo.pos = []uint{}
-		c.memo.len = []uint{}
+		c.memo = &memo{true, []FoundRune{}}
 	}
 }
 

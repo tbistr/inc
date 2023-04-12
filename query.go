@@ -19,7 +19,7 @@ func (e *Engine) AddQuery(r rune) {
 		if c.memo.matched {
 			last := lastOr(c.memo.founds, FoundRune{0, 0})
 			surplus := c.Text[last.Pos+last.Len:]
-			found := e.index(surplus, r)
+			found := e.config.index(surplus, r)
 			if found == -1 {
 				c.memo.matched = false
 				continue

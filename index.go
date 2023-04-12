@@ -2,16 +2,8 @@ package inc
 
 import "strings"
 
-// index is custom search function.
-type index func(s string, r rune) int
-
-// initIndex initializes the index function.
-func (e *Engine) initIndex() {
-	e.index = strings.IndexRune
-	if e.option.ignoreCase {
-		e.index = indexIgnoreCase
-	}
-}
+// Index is custom search function.
+type Index func(s string, r rune) int
 
 // indexIgnoreCase is a custom search function that ignores case.
 // Only ASCII characters are supported.

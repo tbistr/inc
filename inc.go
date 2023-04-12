@@ -35,29 +35,22 @@ type Candidate struct {
 type Engine struct {
 	Cands  []Candidate
 	query  []rune
-	index  index
-	option *option
+	config *config
 }
 
 // New returns a new Engine.
 //
 // Options is set like `New("", [], inc.IgnoreCase())`
-func New(query string, cands []Candidate, opts ...Option) *Engine {
-	// default option
-	opt := option{
-		ignoreCase: false,
-	}
-	for _, setter := range opts {
-		setter(&opt)
-	}
-
+func New(query string, cands []Candidate, opts ...option) *Engine {
 	e := &Engine{
 		Cands:  cands,
 		query:  []rune(query),
-		option: &opt,
+		config: defaultConfig,
 	}
-	// initMemo must be called after initIndex().
-	e.initIndex()
+	for _, setter := range opts {
+		setter(e.config)
+	}
+
 	e.initMemo()
 	return e
 }

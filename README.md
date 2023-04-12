@@ -10,7 +10,7 @@ inc is an incremental text search library.
 
 ## Usage
 
-For more information, see [godoc](https://pkg.go.dev/github.com/tbistr/inc).
+[For more information, see godoc](https://pkg.go.dev/github.com/tbistr/inc).
 
 ```golang
 // initialize with the initial query and the target strings
@@ -41,16 +41,16 @@ ms := e.MatchedPtr()
 For the following text,
 
 ```golang
-[]string{"foobar", "hogehuga", "bazbar"}
+[]string{"foobar", "hogehuga", "foobaz"}
 ```
 
-query `"ob"` matches `"foobar"` and `"bazbar"`.  
-Then add `'a'` to the query, it matches `"foobar"` only.  
-Remove `'a'` and add `'r'`, it matches `"foobar"` and `"bazbar"` again.
+query `"ob"` matches `"foobar"` and `"foobaz"`.  
+Then add `'r'` to the query, it only matches `"foobar"`.  
+Remove `'r'` and add `'z'`, it matches `"foobaz"` again.
 
 Like this, incremental search checks
 
 - if the runes in the query are included in the text;
-- if the order of the runes is the same as the text.
+- if the order of the included runes is the same as the query.
 
 But doesn't care about substrings between the runes.

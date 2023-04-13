@@ -1,104 +1,39 @@
 package main
 
 import (
+	"fmt"
+	"io"
+	"os"
 	"strings"
 
-	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 	"github.com/tbistr/inc"
+	"github.com/tbistr/inc/ui"
+	"golang.org/x/term"
 )
 
-var ss = []string{
-	"Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-	"Feugiat nisl pretium fusce id velit ut tortor pretium",
-	"Magna etiam tempor orci eu lobortis",
-	"Tempor nec feugiat nisl pretium",
-	"Sodales neque sodales ut etiam sit amet",
-	"Est ante in nibh mauris",
-	"In aliquam sem fringilla ut morbi tincidunt augue",
-	"Sed pulvinar proin gravida hendrerit lectus",
-	"Sapien nec sagittis aliquam malesuada bibendum arcu vitae elementum",
-	"Id interdum velit laoreet id donec ultrices tincidunt",
-	"Sagittis eu volutpat odio facilisis mauris sit amet massa",
-	"Ac tortor dignissim convallis aenean et tortor at risus",
-	"Pharetra vel turpis nunc eget lorem dolor",
-	"Purus ut faucibus pulvinar elementum integer",
-	"Massa ultricies mi quis hendrerit dolor magna",
-	"Sed pulvinar proin gravida hendrerit lectus a",
-	"Sit amet venenatis urna cursus eget nunc scelerisque viverra",
-	"Vitae congue eu consequat ac felis donec et",
-	"Vel fringilla est ullamcorper eget nulla facilisi etiam dignissim diam",
-	"Vel risus commodo viverra maecenas",
-	"Cursus eget nunc scelerisque viverra mauris in aliquam",
-	"Magna eget est lorem ipsum dolor sit amet",
-	"Quam quisque id diam vel quam elementum",
-	"Quisque id diam vel quam elementum pulvinar etiam non",
-	"Condimentum vitae sapien pellentesque habitant morbi tristique senectus",
-	"Vivamus arcu felis bibendum ut tristique et egestas",
-	"Cursus metus aliquam eleifend mi in nulla posuere sollicitudin aliquam",
-	"Neque aliquam vestibulum morbi blandit cursus risus",
-}
-
-var ENGINE *inc.Engine = inc.New("", inc.Strs2Cands(ss), inc.IgnoreCase())
-
-func dumpCands() string {
-	b := strings.Builder{}
-	color := ""
-	for _, c := range ENGINE.Cands {
-		if c.Matched() {
-			color = "[white]"
-			b.WriteString(color)
-			b.WriteString("+ ")
-		} else {
-			color = "[grey]"
-			b.WriteString(color)
-			b.WriteString("- ")
-		}
-		founds := c.FoundRunes()
-		last := uint(0)
-		for _, f := range founds {
-			b.WriteString(c.Text[last:f.Pos])
-			b.WriteString("[red]")
-			b.WriteString(c.Text[f.Pos : f.Pos+f.Len])
-			b.WriteString(color)
-			last = f.Pos + f.Len
-		}
-		b.WriteString(c.Text[last:])
-		b.WriteString("\n")
-	}
-	return b.String()
-}
+const say = `
+ ------------------------------------------------
+ | You need to pipe some input to this program! |
+ ------------------------------------------------
+       \   ^__^
+        \  (oo)\_______
+           (__)\       )\/\
+               ||----w |
+               ||     ||
+`
 
 func main() {
-	app := tview.NewApplication()
+	if term.IsTerminal(int(os.Stdin.Fd())) {
+		fmt.Print(say)
+		return
+	}
+	stdin, _ := io.ReadAll(os.Stdin)
+	cands := strings.Split(string(stdin), "\n")
 
-	result := tview.NewTextView()
-	result.SetTitle("Result").SetBorder(true)
-	result.SetDynamicColors(true)
-	result.SetText(dumpCands())
+	e := inc.New("", inc.Strs2Cands(cands), inc.IgnoreCase())
+	ui.RunSelector(e)
 
-	query := tview.NewInputField()
-	query.
-		SetLabel("query:").
-		SetBorder(true)
-
-	query.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		switch event.Key() {
-		case tcell.KeyRune:
-			ENGINE.AddQuery(event.Rune())
-		case tcell.KeyBackspace, tcell.KeyBackspace2:
-			ENGINE.RmQuery()
-		}
-		result.SetText(dumpCands())
-		return event
-	})
-
-	flex := tview.NewFlex().
-		SetDirection(tview.FlexRow).
-		AddItem(query, 3, 1, true).
-		AddItem(result, 0, 1, false)
-
-	if err := app.SetRoot(flex, true).Run(); err != nil {
-		panic(err)
+	for _, s := range e.MatchedString() {
+		fmt.Println(s)
 	}
 }

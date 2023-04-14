@@ -23,6 +23,7 @@ const say = `
 `
 
 func main() {
+	// Check if stdin is a terminal or piped.
 	if term.IsTerminal(int(os.Stdin.Fd())) {
 		fmt.Print(say)
 		return

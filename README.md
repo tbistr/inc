@@ -2,7 +2,7 @@
 
 inc is an incremental text search library.
 
-<img src="example/demo.gif" width="400">
+<img src="example/demo.gif" width="500">
 
 ## install
 

@@ -73,6 +73,19 @@ func (e *Engine) DelQuery() {
 	}
 }
 
+// SwapQuery swaps the query with a string s.
+func (e *Engine) SwapQuery(s string) {
+	// i, r is the first rune that is different from the query.
+	i, r := 0, ' '
+	for i, r = range s {
+		if len(e.query) <= i || r != e.query[i] {
+			break
+		}
+	}
+	e.RmNQuery(len(e.query) - i)
+	e.AddQueryString(s[i:])
+}
+
 func lastOr[T any](ts []T, defaultV T) T {
 	if len(ts) == 0 {
 		return defaultV

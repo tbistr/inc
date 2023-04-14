@@ -15,6 +15,7 @@ var (
 	emphStyle = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorRed)
 )
 
+// RunSlector runs the default selector UI.
 func RunSelector(e *inc.Engine) {
 	// Initialize screen
 	s, err := tcell.NewScreen()

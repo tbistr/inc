@@ -68,8 +68,8 @@ func (e *Engine) DelQuery() {
 	}
 	e.query = []rune{}
 
-	for _, c := range e.Cands {
-		c.memo = &memo{true, []FoundRune{}}
+	for i := range e.Cands {
+		e.Cands[i].memo = &memo{true, []FoundRune{}}
 	}
 }
 

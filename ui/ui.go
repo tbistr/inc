@@ -47,11 +47,9 @@ func RunSelector(e *inc.Engine) {
 		s.Clear()
 		printQuery(s, e)
 		i := 0
-		for _, c := range e.Cands {
-			if c.Matched() {
-				printCand(s, c, i+1)
-				i++
-			}
+		for _, c := range e.Matched() {
+			printCand(s, c, i+1)
+			i++
 		}
 		s.Show()
 

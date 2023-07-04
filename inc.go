@@ -20,85 +20,50 @@ func Match(query string, body string) bool {
 	return false
 }
 
-// Candidate is a candidate for incremental search.
-//
-// Text is a string to be searched.
-// If you want to Engine to return a pointer to some object as a search result, you can use the Ptr field.
-type Candidate struct {
-	Ptr  any
-	Text string
-	memo *memo
+type Algorithm interface {
+	// AppendCands appends candidates to the engine.
+	AppendCands([]InnerCandidate)
+
+	// GetQuery returns the current query.
+	GetQuery() []rune
+	// AddQuery adds a rune to the query.
+	AddQuery(rune)
+	// RmQuery removes a rune from the query.
+	RmQuery()
+	// DelQuery deletes (clears) the query.
+	DelQuery()
 }
 
 // Engine is a engine for incremental search.
 // Cands is a list of candidates.
 type Engine struct {
-	Cands  []Candidate
-	query  []rune
-	config *config
+	cands []InnerCandidate
+	query []rune
+	Algorithm
 }
 
 // New returns a new Engine.
-//
-// Options is set like `New("", [], inc.IgnoreCase())`
-func New(query string, cands []Candidate, opts ...option) *Engine {
+func New(query string, cands []*Candidate, algo Algorithm) *Engine {
+	iCands := make([]InnerCandidate, 0, len(cands))
+	for _, c := range cands {
+		iCands = append(iCands, InnerCandidate{c})
+	}
 	e := &Engine{
-		Cands:  cands,
-		query:  []rune(query),
-		config: defaultConfig,
+		cands:     iCands,
+		query:     []rune(query),
+		Algorithm: algo,
 	}
-	for _, setter := range opts {
-		setter(e.config)
-	}
-
-	e.initMemo()
+	e.AppendCands(iCands)
 	return e
 }
 
-// Query returns the current query string.
-func (e *Engine) Query() string {
-	return string(e.query)
-}
-
-// Matched returns whether the candidate is matched.
-func (c *Candidate) Matched() bool {
-	return c.memo.matched
-}
-
-// MatchedIndex returns the index of the matched candidates.
-func (e *Engine) MatchedIndex() []int {
-	res := make([]int, 0, len(e.Cands))
-
-	for i := range e.Cands {
-		if e.Cands[i].memo.matched {
-			res = append(res, i)
+// Matched returns matched candidates.
+func (e *Engine) Matched() []*Candidate {
+	matched := make([]*Candidate, 0, len(e.cands))
+	for _, c := range e.cands {
+		if c.Matched() {
+			matched = append(matched, c.Candidate)
 		}
 	}
-	return res
-}
-
-// MatchedString returns the text of the matched candidates.
-func (e *Engine) MatchedString() []string {
-	res := make([]string, 0, len(e.Cands))
-
-	for _, c := range e.Cands {
-		if c.memo.matched {
-			res = append(res, c.Text)
-		}
-	}
-	return res
-}
-
-// MatchedPtr returns the pointer of the matched candidates.
-//
-// Ptr is Cands.Ptr.
-func (e *Engine) MatchedPtr() []any {
-	res := make([]any, 0, len(e.Cands))
-
-	for _, c := range e.Cands {
-		if c.memo.matched {
-			res = append(res, c.Ptr)
-		}
-	}
-	return res
+	return matched
 }

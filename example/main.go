@@ -7,19 +7,19 @@ import (
 	"strings"
 
 	"github.com/tbistr/inc"
+	"github.com/tbistr/inc/algorithm"
 	"github.com/tbistr/inc/ui"
 	"golang.org/x/term"
 )
 
-const say = `
- ------------------------------------------------
- | You need to pipe some input to this program! |
- ------------------------------------------------
-       \   ^__^
-        \  (oo)\_______
-           (__)\       )\/\
-               ||----w |
-               ||     ||
+const say = `------------------------------------------------
+| You need to pipe some input to this program! |
+------------------------------------------------
+      \   ^__^
+       \  (oo)\_______
+          (__)\       )\/\
+              ||----w |
+              ||     ||
 `
 
 func main() {
@@ -31,10 +31,10 @@ func main() {
 	stdin, _ := io.ReadAll(os.Stdin)
 	cands := strings.Split(string(stdin), "\n")
 
-	e := inc.New("", inc.Strs2Cands(cands), inc.IgnoreCase())
+	e := inc.New("", inc.Strs2Cands(cands), &algorithm.Default{})
 	ui.RunSelector(e)
 
-	for _, s := range e.MatchedString() {
-		fmt.Println(s)
+	for _, c := range e.Matched() {
+		fmt.Println(c)
 	}
 }

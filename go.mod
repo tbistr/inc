@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/gdamore/tcell/v2 v2.6.0
 	github.com/mattn/go-runewidth v0.0.14
-	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	golang.org/x/term v0.7.0
 )
 

@@ -12,20 +12,21 @@ import (
 func printQuery(s tcell.Screen, e *inc.Engine) {
 	prompt := "QUERY> "
 	x := setContents(s, 0, 0, prompt, defStyle)
-	x = setContents(s, x, 0, e.Query(), defStyle)
+	x = setContents(s, x, 0, string(e.GetQuery()), defStyle)
 	setContents(s, x, 0, "_", defStyle)
 }
 
 // printCand prints a candidate line.
-func printCand(s tcell.Screen, cand inc.Candidate, y int) {
-	t := cand.Text
+func printCand(s tcell.Screen, cand *inc.Candidate, y int) {
+	t := cand.String()
+	keyRunes := cand.GetKeyRunes()
 	w, _ := s.Size()
-	lastFound := lastOr(cand.FoundRunes(), inc.FoundRune{})
+	lastFound := lastOr(keyRunes, inc.FoundRune{})
 	start, _ := truncate(t, int(lastFound.Pos), w)
 
 	last := uint(start)
 	x := 0
-	for _, f := range cand.FoundRunes() {
+	for _, f := range keyRunes {
 		if int(f.Pos) < start {
 			continue
 		}

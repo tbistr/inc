@@ -22,7 +22,7 @@ func Match(query string, body string) bool {
 
 type Algorithm interface {
 	// AppendCands appends candidates to the engine.
-	AppendCands([]InnerCandidate)
+	AppendCands([]*Candidate)
 
 	// GetQuery returns the current query.
 	GetQuery() []rune
@@ -37,32 +37,35 @@ type Algorithm interface {
 // Engine is a engine for incremental search.
 // Cands is a list of candidates.
 type Engine struct {
-	cands []InnerCandidate
-	query []rune
+	// Candidate should not be pointer because it can be touched from user in a process.
+	cands []*Candidate
 	Algorithm
 }
 
 // New returns a new Engine.
-func New(query string, cands []*Candidate, algo Algorithm) *Engine {
-	iCands := make([]InnerCandidate, 0, len(cands))
-	for _, c := range cands {
-		iCands = append(iCands, InnerCandidate{c})
+func New(query string, cands []Candidate) *Engine {
+	e := &Engine{Algorithm: &DefaultAlgo{}}
+	e.AppendCands(cands)
+	for _, r := range query {
+		e.AddQuery(r)
 	}
-	e := &Engine{
-		cands:     iCands,
-		query:     []rune(query),
-		Algorithm: algo,
-	}
-	e.AppendCands(iCands)
 	return e
 }
 
+func (e *Engine) AppendCands(cands []Candidate) {
+	pCands := make([]*Candidate, len(cands))
+	for i, c := range cands {
+		pCands[i] = &c
+	}
+	e.cands = append(e.cands, pCands...)
+}
+
 // Matched returns matched candidates.
-func (e *Engine) Matched() []*Candidate {
-	matched := make([]*Candidate, 0, len(e.cands))
+func (e *Engine) Matched() []Candidate {
+	matched := make([]Candidate, 0, len(e.cands))
 	for _, c := range e.cands {
-		if c.Matched() {
-			matched = append(matched, c.Candidate)
+		if c.Matched {
+			matched = append(matched, *c)
 		}
 	}
 	return matched

@@ -1,38 +1,37 @@
-package algorithm
+package inc
 
 import (
 	"strings"
 	"unicode/utf8"
-
-	"github.com/tbistr/inc"
 )
 
-type Default struct {
+type DefaultAlgo struct {
 	query []rune
-	cands []inc.InnerCandidate
+	cands []*Candidate
 }
 
-var _ inc.Algorithm = (*Default)(nil)
+var _ Algorithm = (*DefaultAlgo)(nil)
 
-func (d *Default) AppendCands(ics []inc.InnerCandidate) {
-	d.cands = append(d.cands, ics...)
+func (d *DefaultAlgo) AppendCands(cands []*Candidate) {
+	d.cands = append(d.cands, cands...)
+	// TODO: Care about Append after AddQuery.
 }
 
-func (d *Default) GetQuery() []rune {
+func (d *DefaultAlgo) GetQuery() []rune {
 	return d.query
 }
 
 // AddQuery adds a rune to the query.
-func (d *Default) AddQuery(r rune) {
+func (d *DefaultAlgo) AddQuery(r rune) {
 	d.query = append(d.query, r)
 
 	for _, c := range d.cands {
-		if c.Matched() {
-			last := lastOr(c.GetKeyRunes(), inc.FoundRune{Pos: 0, Len: 0})
+		if c.Matched {
+			last := lastOr(c.KeyRunes, KeyRune{Pos: 0, Len: 0})
 			surplus := c.String()[last.Pos+last.Len:]
 			found := strings.IndexRune(surplus, r)
 			if found == -1 {
-				c.SetMatched(false)
+				c.Matched = false
 				continue
 			}
 
@@ -41,38 +40,37 @@ func (d *Default) AddQuery(r rune) {
 			// if addQuery('四') ->
 			// Pos = lPos + lLen + found = 2 + 1 + 0 = 3
 			// Len = RuneLen('四') = 3
-			founds := append(c.GetKeyRunes(), inc.FoundRune{
+			c.KeyRunes = append(c.KeyRunes, KeyRune{
 				Pos: last.Pos + last.Len + uint(found),
 				Len: uint(utf8.RuneLen(r)),
 			})
-			c.SetKeyRunes(founds)
 		}
 	}
 }
 
 // RmQuery removes the last rune from the query.
-func (d *Default) RmQuery() {
+func (d *DefaultAlgo) RmQuery() {
 	d.query = rmLast(d.query)
 
 	for _, c := range d.cands {
-		if c.Matched() {
-			c.SetKeyRunes(rmLast(c.GetKeyRunes()))
+		if c.Matched {
+			c.KeyRunes = rmLast(c.KeyRunes)
 		}
-		c.SetMatched(len(c.GetKeyRunes()) == len(d.query))
+		c.Matched = len(c.KeyRunes) == len(d.query)
 	}
 }
 
 // DelQuery removes all runes from the query.
 // All candidates will be matched.
-func (d *Default) DelQuery() {
+func (d *DefaultAlgo) DelQuery() {
 	if len(d.query) == 0 {
 		return
 	}
 	d.query = []rune{}
 
 	for _, c := range d.cands {
-		c.SetMatched(true)
-		c.SetKeyRunes([]inc.FoundRune{})
+		c.Matched = true
+		c.KeyRunes = []KeyRune{}
 	}
 }
 

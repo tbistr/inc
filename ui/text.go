@@ -17,11 +17,11 @@ func printQuery(s tcell.Screen, e *inc.Engine) {
 }
 
 // printCand prints a candidate line.
-func printCand(s tcell.Screen, cand *inc.Candidate, y int) {
+func printCand(s tcell.Screen, cand inc.Candidate, y int) {
 	t := cand.String()
-	keyRunes := cand.GetKeyRunes()
+	keyRunes := cand.KeyRunes
 	w, _ := s.Size()
-	lastFound := lastOr(keyRunes, inc.FoundRune{})
+	lastFound := lastOr(keyRunes, inc.KeyRune{})
 	start, _ := truncate(t, int(lastFound.Pos), w)
 
 	last := uint(start)

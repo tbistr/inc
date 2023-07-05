@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/tbistr/inc"
-	"github.com/tbistr/inc/algorithm"
 	"github.com/tbistr/inc/ui"
 	"golang.org/x/term"
 )
@@ -31,7 +30,7 @@ func main() {
 	stdin, _ := io.ReadAll(os.Stdin)
 	cands := strings.Split(string(stdin), "\n")
 
-	e := inc.New("", inc.Strs2Cands(cands), &algorithm.Default{})
+	e := inc.New("", inc.Strs2Cands(cands))
 	ui.RunSelector(e)
 
 	for _, c := range e.Matched() {

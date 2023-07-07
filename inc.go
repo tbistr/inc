@@ -44,7 +44,12 @@ type Engine struct {
 
 // New returns a new Engine.
 func New(query string, cands []Candidate) *Engine {
-	e := &Engine{Algorithm: &DefaultAlgo{}}
+	return NewWithAlgo(query, cands, &DefaultAlgo{})
+}
+
+// NewWithAlgo returns a new Engine with a custom algorithm.
+func NewWithAlgo(query string, cands []Candidate, algo Algorithm) *Engine {
+	e := &Engine{Algorithm: algo}
 	e.AppendCands(cands)
 	for _, r := range query {
 		e.AddQuery(r)

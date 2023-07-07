@@ -20,24 +20,8 @@ func Match(query string, body string) bool {
 	return false
 }
 
-type Algorithm interface {
-	// AppendCands appends candidates to the engine.
-	AppendCands([]*Candidate)
-
-	// GetQuery returns the current query.
-	GetQuery() []rune
-	// AddQuery adds a rune to the query.
-	AddQuery(rune)
-	// RmQuery removes a rune from the query.
-	RmQuery()
-	// DelQuery deletes (clears) the query.
-	DelQuery()
-}
-
 // Engine is a engine for incremental search.
-// Cands is a list of candidates.
 type Engine struct {
-	// Candidate should not be pointer because it can be touched from user in a process.
 	cands []*Candidate
 	Algorithm
 }
@@ -57,15 +41,24 @@ func NewWithAlgo(query string, cands []Candidate, algo Algorithm) *Engine {
 	return e
 }
 
+// AppendCands appends candidates to the engine.
+//
+// It receives candidates as values and converts them to pointers.
+// So, you can't modify the candidates after passing them to AppendCands.
 func (e *Engine) AppendCands(cands []Candidate) {
 	pCands := make([]*Candidate, len(cands))
 	for i, c := range cands {
-		pCands[i] = &c
+		p := c // Loop var c is overwritten in each iteration.
+		pCands[i] = &p
 	}
+
+	e.Algorithm.AppendCands(pCands)
 	e.cands = append(e.cands, pCands...)
 }
 
 // Matched returns matched candidates.
+//
+// It returns candidates as values, so you can't modify internal states of the engine.
 func (e *Engine) Matched() []Candidate {
 	matched := make([]Candidate, 0, len(e.cands))
 	for _, c := range e.cands {

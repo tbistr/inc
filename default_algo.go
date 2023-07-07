@@ -5,6 +5,20 @@ import (
 	"unicode/utf8"
 )
 
+type Algorithm interface {
+	// AppendCands appends candidates to the engine.
+	AppendCands([]*Candidate)
+
+	// GetQuery returns the current query.
+	GetQuery() []rune
+	// AddQuery adds a rune to the query.
+	AddQuery(rune)
+	// RmQuery removes a rune from the query.
+	RmQuery()
+	// DelQuery deletes (clears) the query.
+	DelQuery()
+}
+
 type defaultAlgo struct {
 	query []rune
 	cands []*Candidate

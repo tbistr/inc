@@ -11,20 +11,23 @@ type Candidate struct {
 	KeyRunes []KeyRune
 }
 
-// KeyRune represents a found rune info in the target.
+// KeyRune represents a important rune in a candidate.Text.
+// It is intended to be used to highlight matched runes.
 //
-// `target[found.Pos:]` is the rest of the target(including the found rune).
-// `target[found.Pos:found.Pos+found.Len]` is the one found rune.
+// Use like this:
+//
+//	target[Pos:]
+//	target[Pos:Pos+Len]
+//
+// Former is the substring from the key rune to the end of the target.
+// Latter is one key runes with proper length.
+//
+// If multibyte (non-ASCII) characters are not used, you may use only Pos.
 type KeyRune struct {
-	// Pos is the indexes of the **next** of first rune of each matched rune.
-	//
-	// e.g. if {query: "abc", target: "aaabbbccc"} then Pos is [0, 3, 6]
-	// Each index is used to get substring for next search like `target[Pos[-1]+len[-1]:]]`.
+	// Pos is the index of the first rune of the runes which are matched.
 	Pos uint
-	// Len is length of target[Pos].
-	// It is used to get substring for next search like `target[pos+Len]`.
+	// Len is length of the rune starts with target[Pos].
 	Len uint
-	// NOTE: Should be []uint8? but can't calc pos + len.
 }
 
 // NewCandidate Makes a new Candidate.

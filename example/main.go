@@ -34,6 +34,6 @@ func main() {
 	ui.RunSelector(e)
 
 	for _, c := range e.Matched() {
-		fmt.Println(c)
+		fmt.Println(&c)
 	}
 }

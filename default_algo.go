@@ -14,7 +14,7 @@ var _ Algorithm = (*defaultAlgo)(nil)
 
 // findAndMark finds runes in the query from the candidate and marks them.
 // This starts from the current last key rune.
-func findAndMark(query []rune, c *Candidate) {
+func findAndMark(c *Candidate, query ...rune) {
 	lastKey := lastOr(c.KeyRunes, KeyRune{Pos: 0, Len: 0})
 	tail := c.String()[lastKey.Pos+lastKey.Len:]
 
@@ -43,7 +43,7 @@ func (a *defaultAlgo) AppendCands(cands []*Candidate) {
 	for _, c := range cands {
 		c.Matched = true
 		c.KeyRunes = nil
-		findAndMark(a.query, c)
+		findAndMark(c, a.query...)
 	}
 	a.cands = append(a.cands, cands...)
 }
@@ -58,7 +58,7 @@ func (a *defaultAlgo) AddQuery(r rune) {
 
 	for _, c := range a.cands {
 		if c.Matched {
-			findAndMark(a.query, c)
+			findAndMark(c, r)
 		}
 	}
 }

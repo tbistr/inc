@@ -44,7 +44,7 @@ type Engine struct {
 
 // New returns a new Engine.
 func New(query string, cands []Candidate) *Engine {
-	return NewWithAlgo(query, cands, &DefaultAlgo{})
+	return NewWithAlgo(query, cands, &defaultAlgo{})
 }
 
 // NewWithAlgo returns a new Engine with a custom algorithm.

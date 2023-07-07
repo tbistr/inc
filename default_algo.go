@@ -5,12 +5,12 @@ import (
 	"unicode/utf8"
 )
 
-type DefaultAlgo struct {
+type defaultAlgo struct {
 	query []rune
 	cands []*Candidate
 }
 
-var _ Algorithm = (*DefaultAlgo)(nil)
+var _ Algorithm = (*defaultAlgo)(nil)
 
 // findAndMark finds runes in the query from the candidate and marks them.
 // This starts from the current last key rune.
@@ -39,7 +39,7 @@ func findAndMark(query []rune, c *Candidate) {
 	}
 }
 
-func (a *DefaultAlgo) AppendCands(cands []*Candidate) {
+func (a *defaultAlgo) AppendCands(cands []*Candidate) {
 	for _, c := range cands {
 		c.Matched = true
 		c.KeyRunes = nil
@@ -48,12 +48,12 @@ func (a *DefaultAlgo) AppendCands(cands []*Candidate) {
 	a.cands = append(a.cands, cands...)
 }
 
-func (d *DefaultAlgo) GetQuery() []rune {
+func (d *defaultAlgo) GetQuery() []rune {
 	return d.query
 }
 
 // AddQuery adds a rune to the query.
-func (a *DefaultAlgo) AddQuery(r rune) {
+func (a *defaultAlgo) AddQuery(r rune) {
 	a.query = append(a.query, r)
 
 	for _, c := range a.cands {
@@ -64,7 +64,7 @@ func (a *DefaultAlgo) AddQuery(r rune) {
 }
 
 // RmQuery removes the last rune from the query.
-func (a *DefaultAlgo) RmQuery() {
+func (a *defaultAlgo) RmQuery() {
 	a.query = rmLast(a.query)
 
 	for _, c := range a.cands {
@@ -77,7 +77,7 @@ func (a *DefaultAlgo) RmQuery() {
 
 // DelQuery removes all runes from the query.
 // All candidates will be matched.
-func (a *DefaultAlgo) DelQuery() {
+func (a *defaultAlgo) DelQuery() {
 	if len(a.query) == 0 {
 		return
 	}

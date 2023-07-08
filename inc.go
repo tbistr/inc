@@ -27,6 +27,8 @@ type Engine struct {
 }
 
 // New returns a new Engine.
+//
+// It uses the default algorithm which is naive incremental search.
 func New(query string, cands []Candidate) *Engine {
 	return NewWithAlgo(query, cands, &defaultAlgo{})
 }

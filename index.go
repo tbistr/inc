@@ -1,5 +1,7 @@
 package inc
 
+// TODO: Enable custom index option.
+
 import "strings"
 
 // Index is custom search function.

@@ -1,13 +1,20 @@
 package inc
 
 // Candidate is a candidate for incremental search.
-//
-// Text is a string to be searched.
-// If you want to Engine to return a pointer to some object as a search result, you can use the Ptr field.
 type Candidate struct {
-	Ptr      any
-	Text     []rune
-	Matched  bool
+	// Ptr is a arbitrary pointer.
+	// If you want to Engine to return a pointer to some object as a search result, you can use this field.
+	Ptr any
+	// Text is a string to be searched.
+	Text []rune
+	// Matched is true if the candidate is matched.
+	Matched bool
+	// KeyRunes is a list of key runes.
+	// It is intended to be used to highlight matched runes.
+	//
+	// Even if Matched is true, len(KeyRunes) != len(query) may be true.
+	// It depends on the algorithm you use.
+	// (Some algorithms may not use KeyRunes at all.)
 	KeyRunes []KeyRune
 }
 
@@ -31,11 +38,6 @@ type KeyRune struct {
 }
 
 // NewCandidate Makes a new Candidate.
-//
-// text is a string to be searched.
-//
-// ptr is a arbitrary pointer.
-// If you want to Engine to return a pointer to some object as a search result, you can use this field.
 func NewCandidate(text []rune, ptr any) *Candidate {
 	return &Candidate{
 		Ptr:     ptr,
@@ -44,9 +46,6 @@ func NewCandidate(text []rune, ptr any) *Candidate {
 	}
 }
 
-func (c *Candidate) String() string {
-	if c == nil {
-		return ""
-	}
+func (c Candidate) String() string {
 	return string(c.Text)
 }

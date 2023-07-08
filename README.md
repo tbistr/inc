@@ -1,6 +1,6 @@
 # inc
 
-inc is an incremental text search library.
+inc is a (headless) incremental text search library.
 
 <img src="example/demo.gif" width="500">
 
@@ -14,26 +14,31 @@ inc is an incremental text search library.
 
 ```golang
 // initialize with the initial query and the target strings
-// Strs2Cands converts []string to []inc.Cand
+// Strs2Cands converts []string to []inc.Candidate
 target := []string{"foobar", "hogehuga", "bazbar"}
 e := inc.New("initial query", inc.Strs2Cands(target))
 
-e.DelQuery() // delete the query
-e.AddQuery('o') // add 'o' to the query
-fmt.Println(e.MatchedString())
-e.RmQuery() // remove the last rune from the query
-fmt.Println(e.MatchedString())
+e.DelQuery()             // delete all runes from the query
+e.AddQuery('o')          // add 'o' to the query
+fmt.Println(e.Matched()) // ["foobar", "hogehuga"]
+e.RmQuery()              // remove the last rune from the query
+fmt.Println(e.Matched())
 
-// if you want to ignore the case, use inc.IgnoreCase()
-e = inc.New("initial query", nil, inc.IgnoreCase())
+a := struct{ Name string }{Name: "some struct A"}
+b := struct{ Name string }{Name: "some struct B"}
 
 // you can get some matched object or pointer
-e := inc.New("", []inc.Candidate{
-    {Ptr: &a, Text: "abc"},
-    {Ptr: &b, Text: "def"},
-    {Ptr: &c, Text: "ghq"},
+e = inc.New("", []inc.Candidate{
+    {Ptr: &a, Text: []rune("abc")},
+    {Ptr: &b, Text: []rune("def")},
 })
-ms := e.MatchedPtr()
+
+// some query operations
+
+for _, c := range e.Matched() {
+    // get matched pointer as *struct{ Name string }
+    fmt.Println(c.Ptr.(*struct{ Name string }).Name)
+}
 ```
 
 ## What is incremental search?
@@ -54,3 +59,6 @@ Like this, incremental search checks
 - if the order of the included runes is the same as the query.
 
 But doesn't care about substrings between the runes.
+
+**This is the explanation of the default algorithm of inc.**
+You can change the algorithm by implementing `inc.Algorithm` and passing it to `inc.NewWithAlgo`.

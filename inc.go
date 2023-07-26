@@ -58,11 +58,19 @@ func (e *Engine) AppendCands(cands []Candidate) {
 	e.cands = append(e.cands, pCands...)
 }
 
+func (e *Engine) Candidates() []Candidate {
+	cs := make([]Candidate, 0, len(e.cands))
+	for _, c := range e.cands {
+		cs = append(cs, *c)
+	}
+	return cs
+}
+
 // Matched returns matched candidates.
 //
 // It returns candidates as values, so you can't modify internal states of the engine.
 func (e *Engine) Matched() []Candidate {
-	matched := make([]Candidate, 0, len(e.cands))
+	matched := []Candidate{}
 	for _, c := range e.cands {
 		if c.Matched {
 			matched = append(matched, *c)

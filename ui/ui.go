@@ -2,92 +2,110 @@ package ui
 
 import (
 	"fmt"
-	"log"
-	"os"
-	"syscall"
 
-	"github.com/gdamore/tcell/v2"
+	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tbistr/inc"
-)
-
-var (
-	defStyle  = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
-	emphStyle = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorRed)
 )
 
 // RunSlector runs the default selector UI.
 func RunSelector(e *inc.Engine) {
-	// Initialize screen
-	s, err := tcell.NewScreen()
-	if err != nil {
-		log.Fatalf("%+v", err)
+	m := NewModel(e)
+	if _, err := tea.NewProgram(m).Run(); err != nil {
+		panic(err)
 	}
-	if err := s.Init(); err != nil {
-		log.Fatalf("%+v", err)
+}
+
+type Model struct {
+	engine   *inc.Engine
+	input    textinput.Model
+	list     list.Model
+	choice   string
+	quitting bool
+}
+
+func NewModel(e *inc.Engine) Model {
+	ti := textinput.New()
+	ti.Placeholder = "Enter a query"
+	ti.Focus()
+	ti.Width = 20
+
+	cands := e.Candidates()
+	items := make([]list.Item, len(cands))
+	for i, c := range cands {
+		items[i] = item{c}
 	}
-	s.SetStyle(defStyle)
-	// s.EnableMouse()
-	s.EnablePaste()
-	s.Clear()
+	li := list.New(items, itemDelegate{}, 0, 0)
+	li.SetShowTitle(false)
+	li.SetShowFilter(false)
+	li.SetShowStatusBar(false)
+	li.KeyMap = list.KeyMap{}
 
-	fin := func() {
-		// You have to catch panics in a defer, clean up, and
-		// re-raise them - otherwise your application can
-		// die without leaving any diagnostic trace.
-		maybePanic := recover()
-		s.Fini()
-		if maybePanic != nil {
-			panic(maybePanic)
-		}
+	return Model{
+		engine: e,
+		input:  ti,
+		list:   li,
 	}
-	defer fin()
+}
 
-	// Event loop
-	for {
-		s.Clear()
-		printQuery(s, e)
-		i := 0
-		for _, c := range e.Matched() {
-			printCand(s, c, i+1)
-			i++
-		}
-		s.Show()
+var _ tea.Model = Model{}
 
-		// Process event
-		switch ev := s.PollEvent().(type) {
-		case *tcell.EventResize:
-			s.Sync()
-		case *tcell.EventKey:
-			if ev.Key() == tcell.KeyEscape || ev.Key() == tcell.KeyCtrlC {
-				fin()
-				if err := syscall.Kill(os.Getpid(), syscall.SIGINT); err != nil {
-					fmt.Println(err)
-				}
-			} else if ev.Key() == tcell.KeyCtrlL {
-				s.Sync()
-			} else if ev.Key() == tcell.KeyRune {
-				e.AddQuery(ev.Rune())
-			} else if ev.Key() == tcell.KeyBackspace || ev.Key() == tcell.KeyBackspace2 || ev.Key() == tcell.KeyDelete {
-				e.RmQuery()
-			} else if ev.Key() == tcell.KeyEnter {
-				return
+func (m Model) Init() tea.Cmd {
+	return textinput.Blink
+}
+
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.input.Width = msg.Width
+		m.list.SetWidth(msg.Width)
+		m.list.SetHeight(msg.Height - 5)
+		return m, nil
+
+	case tea.KeyMsg:
+		switch keypress := msg.String(); keypress {
+		case "ctrl+c", "esc":
+			m.quitting = true
+			return m, tea.Quit
+
+		case "enter":
+			i, ok := m.list.SelectedItem().(item)
+			if ok {
+				m.choice = i.String()
 			}
-
-			// case *tcell.EventMouse:
-			// 	x, y := ev.Position()
-
-			// 	switch ev.Buttons() {
-			// 	case tcell.Button1, tcell.Button2:
-			// 		if ox < 0 {
-			// 			ox, oy = x, y // record location when click started
-			// 		}
-
-			// 	case tcell.ButtonNone:
-			// 		if ox >= 0 {
-			// 			label := fmt.Sprintf("%d,%d to %d,%d", ox, oy, x, y)
-			// 			drawBox(s, ox, oy, x, y, emphStyle, label)
-			// 			ox, oy = -1, -1
-			// 		}
+			return m, tea.Quit
 		}
 	}
+
+	var cmdI, cmdL tea.Cmd
+	m.input, cmdI = m.input.Update(msg)
+	m.engine.DelQuery()
+	for _, r := range m.input.Value() {
+		m.engine.AddQuery(r)
+	}
+
+	cands := m.engine.Candidates()
+	items := []list.Item{}
+	for _, c := range cands {
+		if c.Matched {
+			items = append(items, item{c})
+		}
+	}
+	m.list.SetItems(items)
+	m.list, cmdL = m.list.Update(msg)
+	return m, tea.Batch(cmdI, cmdL)
+}
+
+func (m Model) View() string {
+	if m.choice != "" {
+		return fmt.Sprintf("%s? Sounds good to me.", m.choice)
+	}
+	if m.quitting {
+		return "Not hungry? That’s cool."
+	}
+
+	return m.input.View() +
+		"\n\n" +
+		m.list.View()
 }

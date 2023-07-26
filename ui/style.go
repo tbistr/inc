@@ -3,52 +3,28 @@ package ui
 import (
 	"unicode/utf8"
 
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 	"github.com/tbistr/inc"
 )
 
-// printQuery prints the query input line.
-func printQuery(s tcell.Screen, e *inc.Engine) {
-	prompt := "QUERY> "
-	x := setContents(s, 0, 0, prompt, defStyle)
-	x = setContents(s, x, 0, string(e.GetQuery()), defStyle)
-	setContents(s, x, 0, "_", defStyle)
-}
-
-// printCand prints a candidate line.
-func printCand(s tcell.Screen, cand inc.Candidate, y int) {
-	t := cand.String()
-	keyRunes := cand.KeyRunes
-	w, _ := s.Size()
+// printItem prints a item line.
+func printItem(i item, maxWidth int) string {
+	t := i.String()
+	result := ""
+	keyRunes := i.KeyRunes
 	lastFound := lastOr(keyRunes, inc.KeyRune{})
-	start, _ := truncate(t, int(lastFound.Pos), w)
+	start, _ := truncate(t, int(lastFound.Pos), maxWidth)
 
 	last := uint(start)
-	x := 0
-	for _, f := range keyRunes {
-		if int(f.Pos) < start {
+	for _, k := range keyRunes {
+		if int(k.Pos) < start {
 			continue
 		}
-		x = setContents(s, x, y, t[last:f.Pos], defStyle)
-		x = setContents(s, x, y, t[f.Pos:f.Pos+f.Len], emphStyle)
-		last = f.Pos + f.Len
+		result += t[last:k.Pos] + keyRuneStyle.Render(t[k.Pos:k.Pos+k.Len])
+		last = k.Pos + k.Len
 	}
-	setContents(s, x, y, t[last:], defStyle)
-}
-
-// setContents is a helper function to set string contents to the screen.
-// It returns the next x position.
-func setContents(screen tcell.Screen, x int, y int, str string, style tcell.Style) int {
-	w, _ := screen.Size()
-	for _, r := range str {
-		if w <= x {
-			break
-		}
-		screen.SetContent(x, y, r, nil, style)
-		x += runewidth.RuneWidth(r)
-	}
-	return x
+	result += t[last:]
+	return result
 }
 
 // truncate a string by screen width.

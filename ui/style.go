@@ -1,30 +1,48 @@
 package ui
 
 import (
+	"strings"
 	"unicode/utf8"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/mattn/go-runewidth"
 	"github.com/tbistr/inc"
 )
 
+var (
+	cursor       = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF00FF")).Render("> ")
+	itemStyle    = lipgloss.NewStyle().PaddingLeft(lipgloss.Width(cursor))
+	keyRuneStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#00FA9A"))
+)
+
 // printItem prints a item line.
-func printItem(i item, maxWidth int) string {
+func printItem(i item, focused bool, maxWidth int) string {
 	t := i.String()
-	result := ""
+	result := []string{}
 	keyRunes := i.KeyRunes
 	lastFound := lastOr(keyRunes, inc.KeyRune{})
 	start, _ := truncate(t, int(lastFound.Pos), maxWidth)
-
 	last := uint(start)
+
 	for _, k := range keyRunes {
 		if int(k.Pos) < start {
 			continue
 		}
-		result += t[last:k.Pos] + keyRuneStyle.Render(t[k.Pos:k.Pos+k.Len])
+
+		result = append(
+			result,
+			t[last:k.Pos],
+			keyRuneStyle.Render(t[k.Pos:k.Pos+k.Len]),
+		)
+
 		last = k.Pos + k.Len
 	}
-	result += t[last:]
-	return result
+	result = append(result, t[last:])
+
+	if focused {
+		return cursor + strings.Join(result, "")
+	}
+	return itemStyle.Render(strings.Join(result, ""))
 }
 
 // truncate a string by screen width.

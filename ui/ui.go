@@ -1,28 +1,40 @@
 package ui
 
 import (
-	"fmt"
-
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tbistr/inc"
 )
 
-// RunSlector runs the default selector UI.
-func RunSelector(e *inc.Engine) {
-	m := NewModel(e)
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		panic(err)
-	}
+// RunSelector runs the default selector UI.
+func RunSelector(e *inc.Engine) (bool, int, error) {
+	m, err := tea.NewProgram(NewModel(e), tea.WithAltScreen()).Run()
+	return m.(Model).canceled, m.(Model).index, err
+}
+
+type keyMap struct {
+	Up,
+	Down,
+	Enter,
+	Quit key.Binding
+}
+
+var keys = keyMap{
+	Up:    key.NewBinding(key.WithKeys("up")),
+	Down:  key.NewBinding(key.WithKeys("down")),
+	Enter: key.NewBinding(key.WithKeys("enter")),
+	Quit:  key.NewBinding(key.WithKeys("ctrl+c", "esc")),
 }
 
 type Model struct {
 	engine   *inc.Engine
 	input    textinput.Model
 	list     list.Model
-	choice   string
-	quitting bool
+	keys     keyMap
+	index    int
+	canceled bool
 }
 
 func NewModel(e *inc.Engine) Model {
@@ -40,12 +52,14 @@ func NewModel(e *inc.Engine) Model {
 	li.SetShowTitle(false)
 	li.SetShowFilter(false)
 	li.SetShowStatusBar(false)
+	li.SetShowHelp(false)
 	li.KeyMap = list.KeyMap{}
 
 	return Model{
 		engine: e,
 		input:  ti,
 		list:   li,
+		keys:   keys,
 	}
 }
 
@@ -60,20 +74,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.input.Width = msg.Width
 		m.list.SetWidth(msg.Width)
-		m.list.SetHeight(msg.Height - 5)
+		m.list.SetHeight(msg.Height - 1)
 		return m, nil
 
 	case tea.KeyMsg:
-		switch keypress := msg.String(); keypress {
-		case "ctrl+c", "esc":
-			m.quitting = true
-			return m, tea.Quit
+		switch {
+		case key.Matches(msg, m.keys.Up):
+			m.list.CursorUp()
+		case key.Matches(msg, m.keys.Down):
+			m.list.CursorDown()
 
-		case "enter":
-			i, ok := m.list.SelectedItem().(item)
-			if ok {
-				m.choice = i.String()
-			}
+		case key.Matches(msg, m.keys.Enter):
+			m.index = m.list.Index()
+			return m, tea.Quit
+		case key.Matches(msg, m.keys.Quit):
+			m.canceled = true
 			return m, tea.Quit
 		}
 	}
@@ -98,14 +113,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	if m.choice != "" {
-		return fmt.Sprintf("%s? Sounds good to me.", m.choice)
-	}
-	if m.quitting {
-		return "Not hungry? That’s cool."
-	}
-
 	return m.input.View() +
-		"\n\n" +
+		"\n" +
 		m.list.View()
 }

@@ -29,11 +29,15 @@ func main() {
 	}
 	stdin, _ := io.ReadAll(os.Stdin)
 	cands := strings.Split(string(stdin), "\n")
+	if len(cands) != 0 && cands[len(cands)-1] == "" {
+		cands = cands[:len(cands)-1]
+	}
 
 	e := inc.New("", inc.Strs2Cands(cands))
-	ui.RunSelector(e)
-
-	for _, c := range e.Matched() {
-		fmt.Println(c)
+	canceled, idx, _ := ui.RunSelector(e)
+	if canceled {
+		return
 	}
+
+	fmt.Println(e.Candidates()[idx])
 }

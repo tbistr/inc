@@ -6,12 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/tbistr/inc"
-)
-
-var (
-	keyRuneStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("170"))
 )
 
 type item struct{ inc.Candidate }
@@ -33,7 +28,5 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-	str := printItem(i, m.Width())
-
-	fmt.Fprint(w, str)
+	fmt.Fprint(w, printItem(i, index == m.Index(), m.Width()))
 }

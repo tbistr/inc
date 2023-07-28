@@ -58,6 +58,7 @@ func (e *Engine) AppendCands(cands []Candidate) {
 	e.cands = append(e.cands, pCands...)
 }
 
+// Candidates returns all candidates.
 func (e *Engine) Candidates() []Candidate {
 	cs := make([]Candidate, 0, len(e.cands))
 	for _, c := range e.cands {

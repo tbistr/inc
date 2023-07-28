@@ -10,19 +10,31 @@ import (
 )
 
 var (
-	cursor       = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF00FF")).Render("> ")
-	itemStyle    = lipgloss.NewStyle().PaddingLeft(lipgloss.Width(cursor))
-	keyRuneStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#00FA9A"))
+	cursor    = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF00FF")).Render("> ")
+	itemStyle = lipgloss.NewStyle().PaddingLeft(lipgloss.Width(cursor))
+
+	normalStyle  = lipgloss.NewStyle()
+	keyRuneStyle = normalStyle.Copy().Foreground(lipgloss.Color("#00FA9A"))
+
+	selectedStyle        = normalStyle.Copy().Background(lipgloss.Color("#FF00FF"))
+	selectedKeyRuneStyle = selectedStyle.Copy().Foreground(lipgloss.Color("#00FA9A"))
 )
 
 // printItem prints a item line.
-func printItem(i item, focused bool, maxWidth int) string {
+func printItem(i item, selected bool, maxWidth int) string {
 	t := i.String()
 	result := []string{}
 	keyRunes := i.KeyRunes
 	lastFound := lastOr(keyRunes, inc.KeyRune{})
 	start, _ := truncate(t, int(lastFound.Pos), maxWidth)
 	last := uint(start)
+
+	style := normalStyle
+	keyStyle := keyRuneStyle
+	if selected {
+		style = selectedStyle
+		keyStyle = selectedKeyRuneStyle
+	}
 
 	for _, k := range keyRunes {
 		if int(k.Pos) < start {
@@ -31,15 +43,15 @@ func printItem(i item, focused bool, maxWidth int) string {
 
 		result = append(
 			result,
-			t[last:k.Pos],
-			keyRuneStyle.Render(t[k.Pos:k.Pos+k.Len]),
+			style.Render(t[last:k.Pos]),
+			keyStyle.Render(t[k.Pos:k.Pos+k.Len]),
 		)
 
 		last = k.Pos + k.Len
 	}
-	result = append(result, t[last:])
+	result = append(result, style.Render(t[last:]))
 
-	if focused {
+	if selected {
 		return cursor + strings.Join(result, "")
 	}
 	return itemStyle.Render(strings.Join(result, ""))

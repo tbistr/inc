@@ -9,9 +9,9 @@ import (
 )
 
 // RunSelector runs the default selector UI.
-func RunSelector(e *inc.Engine) (bool, int, error) {
+func RunSelector(e *inc.Engine) (bool, inc.Candidate, error) {
 	m, err := tea.NewProgram(NewModel(e), tea.WithAltScreen()).Run()
-	return m.(Model).canceled, m.(Model).index, err
+	return m.(Model).canceled, m.(Model).selected, err
 }
 
 type keyMap struct {
@@ -33,7 +33,7 @@ type Model struct {
 	input    textinput.Model
 	list     list.Model
 	keys     keyMap
-	index    int
+	selected inc.Candidate
 	canceled bool
 }
 
@@ -85,7 +85,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.list.CursorDown()
 
 		case key.Matches(msg, m.keys.Enter):
-			m.index = m.list.Index()
+			m.selected = m.engine.Matched()[m.list.Index()]
 			return m, tea.Quit
 		case key.Matches(msg, m.keys.Quit):
 			m.canceled = true

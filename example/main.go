@@ -34,10 +34,10 @@ func main() {
 	}
 
 	e := inc.New("", inc.Strs2Cands(cands))
-	canceled, idx, _ := ui.RunSelector(e)
+	canceled, selected, _ := ui.RunSelector(e)
 	if canceled {
 		return
 	}
 
-	fmt.Println(e.Candidates()[idx])
+	fmt.Println(selected)
 }

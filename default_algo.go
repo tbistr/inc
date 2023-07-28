@@ -5,6 +5,10 @@ import (
 	"unicode/utf8"
 )
 
+// Algorithm is the interface for the algorithm used by the engine.
+//
+// Algorithm can be non transitive.
+// So, you can implement a algorithm that calculates with whole query every time.
 type Algorithm interface {
 	// AppendCands appends candidates to the engine.
 	AppendCands([]*Candidate)
@@ -33,7 +37,7 @@ func findAndMark(c *Candidate, query ...rune) {
 	tail := c.String()[lastKey.Pos+lastKey.Len:]
 
 	for _, r := range query {
-		found := strings.IndexRune(tail, r)
+		found := indexIgnoreCase(tail, r)
 		if found == -1 {
 			c.Matched = false
 			return
@@ -50,6 +54,25 @@ func findAndMark(c *Candidate, query ...rune) {
 		}
 		c.KeyRunes = append(c.KeyRunes, lastKey)
 		tail = tail[lastKey.Len:]
+	}
+}
+
+// indexIgnoreCase is a custom search function that ignores case.
+// Only ASCII characters are supported.
+//
+// A <-> a
+func indexIgnoreCase(s string, r rune) int {
+	switch {
+	case 'a' <= r && r <= 'z':
+		return strings.IndexFunc(s, func(ir rune) bool {
+			return ir == r || ir == r+('A'-'a')
+		})
+	case 'A' <= r && r <= 'Z':
+		return strings.IndexFunc(s, func(ir rune) bool {
+			return ir == r || ir == r+('a'-'A')
+		})
+	default:
+		return strings.IndexRune(s, r)
 	}
 }
 

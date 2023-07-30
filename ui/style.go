@@ -10,14 +10,14 @@ import (
 )
 
 var (
-	cursor    = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF00FF")).Render("> ")
+	cursor    = lipgloss.NewStyle().Foreground(lipgloss.Color("#f490f4")).Render("> ")
 	itemStyle = lipgloss.NewStyle().PaddingLeft(lipgloss.Width(cursor))
 
 	normalStyle  = lipgloss.NewStyle()
-	keyRuneStyle = normalStyle.Copy().Foreground(lipgloss.Color("#00FA9A"))
+	keyRuneStyle = normalStyle.Copy().Foreground(lipgloss.Color("#28a078"))
 
-	selectedStyle        = normalStyle.Copy().Background(lipgloss.Color("#FF00FF"))
-	selectedKeyRuneStyle = selectedStyle.Copy().Foreground(lipgloss.Color("#00FA9A"))
+	selectedStyle        = normalStyle.Copy().Background(lipgloss.Color("#f490f4"))
+	selectedKeyRuneStyle = selectedStyle.Copy().Bold(true)
 )
 
 // printItem prints a item line.

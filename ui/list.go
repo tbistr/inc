@@ -9,6 +9,23 @@ import (
 	"github.com/tbistr/inc"
 )
 
+// NewList creates a new list model for showing candidates.
+func NewList(e *inc.Engine) list.Model {
+	cands := e.Candidates()
+	items := make([]list.Item, len(cands))
+	for i, c := range cands {
+		items[i] = item{c}
+	}
+	li := list.New(items, itemDelegate{}, 0, 0)
+	li.SetShowTitle(false)
+	li.SetShowFilter(false)
+	li.SetShowStatusBar(false)
+	li.SetShowHelp(false)
+	li.KeyMap = list.KeyMap{}
+
+	return li
+}
+
 type item struct{ inc.Candidate }
 
 var _ list.Item = item{}

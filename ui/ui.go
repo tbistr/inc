@@ -48,17 +48,11 @@ func NewModel(e *inc.Engine) Model {
 	for i, c := range cands {
 		items[i] = item{c}
 	}
-	li := list.New(items, itemDelegate{}, 0, 0)
-	li.SetShowTitle(false)
-	li.SetShowFilter(false)
-	li.SetShowStatusBar(false)
-	li.SetShowHelp(false)
-	li.KeyMap = list.KeyMap{}
 
 	return Model{
 		engine: e,
 		input:  ti,
-		list:   li,
+		list:   NewList(e),
 		keys:   keys,
 	}
 }

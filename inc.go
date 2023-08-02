@@ -58,6 +58,12 @@ func (e *Engine) AppendCands(cands []Candidate) {
 	e.cands = append(e.cands, pCands...)
 }
 
+// DeleteCands deletes all candidates from the engine.
+func (e *Engine) DeleteCands() {
+	e.Algorithm.DeleteCands()
+	e.cands = nil
+}
+
 // Candidates returns all candidates.
 func (e *Engine) Candidates() []Candidate {
 	cs := make([]Candidate, 0, len(e.cands))

@@ -12,6 +12,8 @@ import (
 type Algorithm interface {
 	// AppendCands appends candidates to the engine.
 	AppendCands([]*Candidate)
+	// DeleteCands deletes candidates from the engine.
+	DeleteCands()
 
 	// GetQuery returns the current query.
 	GetQuery() []rune
@@ -83,6 +85,10 @@ func (a *defaultAlgo) AppendCands(cands []*Candidate) {
 		findAndMark(c, a.query...)
 	}
 	a.cands = append(a.cands, cands...)
+}
+
+func (a *defaultAlgo) DeleteCands() {
+	a.cands = nil
 }
 
 func (d *defaultAlgo) GetQuery() []rune {

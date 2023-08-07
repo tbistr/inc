@@ -72,7 +72,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		m.Selected = m.engine.Matched()[m.list.Index()]
 		switch {
 		case key.Matches(msg, m.keys.Up):
 			m.list.CursorUp()
@@ -103,6 +102,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	m.list.SetItems(items)
 	m.list, cmdL = m.list.Update(msg)
+
+	if len(m.engine.Matched()) > m.list.Index() {
+		m.Selected = m.engine.Matched()[m.list.Index()]
+	} else {
+		m.Selected = inc.Candidate{}
+	}
+
 	return m, tea.Batch(cmdI, cmdL)
 }
 

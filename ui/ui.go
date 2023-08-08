@@ -69,7 +69,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.input.Width = msg.Width
 		m.list.SetWidth(msg.Width)
 		m.list.SetHeight(msg.Height - 1)
-		return m, nil
 
 	case tea.KeyMsg:
 		switch {
@@ -86,7 +85,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	var cmdI, cmdL tea.Cmd
+	var cmdI tea.Cmd
 	m.input, cmdI = m.input.Update(msg)
 	m.engine.DelQuery()
 	for _, r := range m.input.Value() {
@@ -100,8 +99,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			items = append(items, item{c})
 		}
 	}
-	m.list.SetItems(items)
-	m.list, cmdL = m.list.Update(msg)
+	cmdL := m.list.SetItems(items)
 
 	if len(m.engine.Matched()) > m.list.Index() {
 		m.Selected = m.engine.Matched()[m.list.Index()]

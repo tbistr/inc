@@ -85,7 +85,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	var cmdI tea.Cmd
+	var cmdI, cmdL tea.Cmd
+
 	m.input, cmdI = m.input.Update(msg)
 	m.engine.DelQuery()
 	for _, r := range m.input.Value() {
@@ -99,7 +100,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			items = append(items, item{c})
 		}
 	}
-	cmdL := m.list.SetItems(items)
+	m.list.SetItems(items)
+
+	if _, ok := msg.(tea.KeyMsg); !ok {
+		m.list, cmdL = m.list.Update(msg)
+	}
 
 	if len(m.engine.Matched()) > m.list.Index() {
 		m.Selected = m.engine.Matched()[m.list.Index()]
